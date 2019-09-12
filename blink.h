@@ -28,7 +28,11 @@ struct ble_blink_s {
         /* Service handle assigned by the BLE stack */
         uint16_t service_handle;
         /* Service UUID type assigned by the BLE stack */
-        uint8_t  service_type;        
+        uint8_t  service_type;
+        /* Handle for enable/disable LED characteristic */
+        ble_gatts_char_handles_t led_ena_handle;
+        /* Handle for enable/disable interval characteristic */
+        ble_gatts_char_handles_t led_int_handle;
 };
 
 typedef struct ble_blink_s ble_blink_t; /* Eww, but nRF likes this */
