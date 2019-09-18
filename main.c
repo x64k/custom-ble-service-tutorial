@@ -127,9 +127,64 @@ static ble_uuid_t m_adv_uuids[] =                                               
  {BLINK_UUID_SERVICE, BLE_UUID_TYPE_VENDOR_BEGIN},
 };
 
-
 static void advertising_start(bool erase_bonds);
 
+/**
+ * Application data
+ */
+
+struct blink_state {
+    /* Blinking enabled/disabled */
+    bool enabled;
+    /* Blinking interval in 100 ms increments */
+    uint8_t interval;
+};
+
+/* Application state */
+static struct blink_state app_state;
+/* LED blink timer */
+APP_TIMER_DEF(app_led_timer_id);
+/* Application LED */
+static uint32_t app_led_idx;
+
+static void app_led_timer_handler(void *p_context)
+{
+    bool led_state;
+
+    led_state = bsp_board_led_state_get(app_led_idx);
+    if (led_state)
+        bsp_board_led_off(app_led_idx);
+    else
+        bsp_board_led_on(app_led_idx);
+
+    if (app_state.enabled)
+        app_timer_start(app_led_timer_id,
+                        APP_TIMER_TICKS(app_state.interval * 100),
+                        NULL);
+}
+
+static ret_code_t application_init(void)
+{
+    ret_code_t err_code;
+
+    app_led_idx = BSP_BOARD_LED_3;
+    
+    app_state.enabled = false; /* LED disabled by default */
+    app_state.interval = 10;   /* Blink every 1 second */
+
+    err_code = app_timer_create(&app_led_timer_id,
+                                APP_TIMER_MODE_SINGLE_SHOT,
+                                app_led_timer_handler);
+
+    APP_ERROR_CHECK(err_code);
+
+    if (app_state.enabled)
+        app_timer_start(app_led_timer_id,
+                        APP_TIMER_TICKS(app_state.interval * 100),
+                        NULL);
+
+    return NRF_SUCCESS;
+}
 
 /**@brief Callback function for asserts in the SoftDevice.
  *
@@ -683,6 +738,7 @@ static void advertising_start(bool erase_bonds)
  */
 int main(void)
 {
+    ret_code_t err_code;
     bool erase_bonds;
 
     // Initialize.
@@ -703,6 +759,14 @@ int main(void)
     // Start execution.
     NRF_LOG_INFO("Template example started.");
     application_timers_start();
+
+    err_code = application_init();
+    if (err_code != NRF_SUCCESS)
+    {
+        bsp_board_led_on(BSP_BOARD_LED_2);
+        for(;;);
+        /* Panic here */
+    }
 
     advertising_start(erase_bonds);
 

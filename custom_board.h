@@ -46,16 +46,18 @@ extern "C" {
 
 #include "nrf_gpio.h"
 
-#define LEDS_NUMBER    2
+#define LEDS_NUMBER    4
 
 #define LED_1          NRF_GPIO_PIN_MAP(0,7)
 #define LED_2          NRF_GPIO_PIN_MAP(0,14)
+#define LED_3          NRF_GPIO_PIN_MAP(0,19)
+#define LED_4          NRF_GPIO_PIN_MAP(0,20)
 #define LED_START      LED_1
 #define LED_STOP       LED_2
 
 #define LEDS_ACTIVE_STATE 1
 
-#define LEDS_LIST { LED_1, LED_2 }
+#define LEDS_LIST { LED_1, LED_2, LED_3, LED_4 }
 
 #define LEDS_INV_MASK  LEDS_MASK
 
