@@ -21,6 +21,13 @@
 #define BLINK_UUID_LED_ENA     0x196A
 #define BLINK_UUID_LED_INT     0x196B
 
+struct blink_state {
+    /* Blinking enabled/disabled */
+    bool enabled;
+    /* Blinking interval in 100 ms increments */
+    uint8_t interval;
+};
+
 /**
  * BLE Blink Service
  */
@@ -33,12 +40,19 @@ struct ble_blink_s {
         ble_gatts_char_handles_t led_ena_handle;
         /* Handle for enable/disable interval characteristic */
         ble_gatts_char_handles_t led_int_handle;
+        /* State information currently associated with this service */
+        struct blink_state state;
 };
 
 typedef struct ble_blink_s ble_blink_t; /* Eww, but nRF likes this */
 
+typedef struct {
+        struct blink_state state;
+} ble_blink_init_t;
+
 /* Initialize the blink service */
-ret_code_t blink_init(ble_blink_t *p_blink);
+ret_code_t blink_init(ble_blink_t *p_blink,
+                      const ble_blink_init_t *p_blink_init);
 
 /* Event handler for the Blink BLE Service */
 void blink_ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context);

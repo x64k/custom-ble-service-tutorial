@@ -133,15 +133,11 @@ static void advertising_start(bool erase_bonds);
  * Application data
  */
 
-struct blink_state {
-    /* Blinking enabled/disabled */
-    bool enabled;
-    /* Blinking interval in 100 ms increments */
-    uint8_t interval;
-};
-
 /* Application state */
-static struct blink_state app_state;
+static struct blink_state app_state = {
+    .enabled = 0,
+    .interval = 5,
+};
 /* LED blink timer */
 APP_TIMER_DEF(app_led_timer_id);
 /* Application LED */
@@ -169,9 +165,6 @@ static ret_code_t application_init(void)
 
     app_led_idx = BSP_BOARD_LED_3;
     
-    app_state.enabled = false; /* LED disabled by default */
-    app_state.interval = 10;   /* Blink every 1 second */
-
     err_code = app_timer_create(&app_led_timer_id,
                                 APP_TIMER_MODE_SINGLE_SHOT,
                                 app_led_timer_handler);
@@ -334,6 +327,7 @@ static void services_init(void)
 {
     ret_code_t         err_code;
     nrf_ble_qwr_init_t qwr_init = {0};
+    ble_blink_init_t   m_blink_init;
 
     // Initialize Queued Write Module.
     qwr_init.error_handler = nrf_qwr_error_handler;
@@ -341,7 +335,9 @@ static void services_init(void)
     err_code = nrf_ble_qwr_init(&m_qwr, &qwr_init);
     APP_ERROR_CHECK(err_code);
 
-    err_code = blink_init(&m_blink);
+    m_blink_init.state = app_state;
+
+    err_code = blink_init(&m_blink, &m_blink_init);
     APP_ERROR_CHECK(err_code);
 }
 

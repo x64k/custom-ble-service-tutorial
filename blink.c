@@ -1,13 +1,14 @@
 #include "blink.h"
 #include "sdk_common.h"
 
-static ret_code_t add_led_ena_char(ble_blink_t *p_blink)
+static ret_code_t add_led_ena_char(ble_blink_t *p_blink,
+                                   const ble_blink_init_t *p_blink_init)
 {
     ret_code_t err_code;
     ble_add_char_params_t add_char_params;
     ble_add_char_user_desc_t add_char_user_desc;
     static char *user_desc_text = "LED Enable";
-    uint8_t initial_ena_val = 0;
+    uint8_t initial_ena_val = p_blink_init->state.enabled;
 
     /* Add the LED enable characteristic */
     memset(&add_char_params, 0, sizeof add_char_params);
@@ -40,20 +41,21 @@ static ret_code_t add_led_ena_char(ble_blink_t *p_blink)
     return err_code;
 }
 
-static ret_code_t add_led_int_char(ble_blink_t *p_blink)
+static ret_code_t add_led_int_char(ble_blink_t *p_blink,
+                                   const ble_blink_init_t *p_blink_init)
 {
     ret_code_t err_code;
     ble_add_char_params_t add_char_params;
     ble_add_char_user_desc_t add_char_user_desc;
     static char *user_desc_text = "LED blinking interval";
-    uint8_t initial_int_val = 5;
+    uint8_t initial_int_value = p_blink_init->state.interval;
 
     /* Add the blinking interval characteristic */
     memset(&add_char_params, 0, sizeof add_char_params);
     add_char_params.uuid = BLINK_UUID_LED_INT;
     add_char_params.uuid_type = p_blink->service_type;
     add_char_params.init_len = sizeof(uint8_t);
-    add_char_params.p_init_value = &initial_int_val;
+    add_char_params.p_init_value = &initial_int_value;
     add_char_params.max_len = sizeof(uint8_t);
     add_char_params.char_props.read = 1;
     add_char_params.char_props.write = 1;
@@ -79,7 +81,7 @@ static ret_code_t add_led_int_char(ble_blink_t *p_blink)
 }
 
 /* Initialize the blink service */
-ret_code_t blink_init(ble_blink_t *p_blink)
+ret_code_t blink_init(ble_blink_t *p_blink, const ble_blink_init_t *p_blink_init)
 {
         ret_code_t err_code;
         ble_uuid_t ble_uuid;
@@ -101,10 +103,10 @@ ret_code_t blink_init(ble_blink_t *p_blink)
 
         VERIFY_SUCCESS(err_code);
 
-        err_code = add_led_ena_char(p_blink);
+        err_code = add_led_ena_char(p_blink, p_blink_init);
         VERIFY_SUCCESS(err_code);
 
-        err_code = add_led_int_char(p_blink);
+        err_code = add_led_int_char(p_blink, p_blink_init);
         VERIFY_SUCCESS(err_code);
 
         return err_code;
