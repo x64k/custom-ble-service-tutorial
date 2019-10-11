@@ -28,6 +28,13 @@ struct blink_state {
     uint8_t interval;
 };
 
+typedef struct ble_blink_s ble_blink_t; /* Eww, but nRF likes this */
+
+typedef void (*ble_blink_evt_handler_t)(uint16_t conn_handle,
+                                        ble_blink_t *p_blink,
+                                        uint8_t data);
+
+
 /**
  * BLE Blink Service
  */
@@ -42,12 +49,19 @@ struct ble_blink_s {
         ble_gatts_char_handles_t led_int_handle;
         /* State information currently associated with this service */
         struct blink_state state;
+        /* LED enable write handler */
+        ble_blink_evt_handler_t led_ena_wr_handler;
+        /* Interval enable write handler */
+        ble_blink_evt_handler_t led_interval_wr_handler;
 };
 
-typedef struct ble_blink_s ble_blink_t; /* Eww, but nRF likes this */
-
 typedef struct {
+        /* Service state */
         struct blink_state state;
+        /* LED enable write handler */
+        ble_blink_evt_handler_t led_ena_wr_handler;
+        /* Interval enable write handler */
+        ble_blink_evt_handler_t led_interval_wr_handler;
 } ble_blink_init_t;
 
 /* Initialize the blink service */

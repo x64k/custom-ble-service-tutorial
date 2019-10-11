@@ -321,6 +321,29 @@ static void on_yys_evt(ble_yy_service_t     * p_yy_service,
 }
 */
 
+static void on_led_ena_write(uint16_t conn_handle, ble_blink_t *p_blink,
+                             uint8_t data)
+{
+    app_state.enabled = data;
+
+    if (app_state.enabled) {
+        app_timer_stop(app_led_timer_id);
+        app_timer_start(app_led_timer_id,
+                        APP_TIMER_TICKS(app_state.interval * 100),
+                        NULL);
+    } else {
+        app_timer_stop(app_led_timer_id);
+        bsp_board_led_off(app_led_idx);
+    }
+}
+
+static void on_led_interval_write(uint16_t conn_handle,
+                                  ble_blink_t *p_blink,
+                                  uint8_t data)
+{
+    app_state.interval = data;
+}
+
 /**@brief Function for initializing services that will be used by the application.
  */
 static void services_init(void)
@@ -336,6 +359,8 @@ static void services_init(void)
     APP_ERROR_CHECK(err_code);
 
     m_blink_init.state = app_state;
+    m_blink_init.led_ena_wr_handler = on_led_ena_write;
+    m_blink_init.led_interval_wr_handler = on_led_interval_write;
 
     err_code = blink_init(&m_blink, &m_blink_init);
     APP_ERROR_CHECK(err_code);

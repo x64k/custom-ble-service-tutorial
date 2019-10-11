@@ -1,6 +1,7 @@
 #include "blink.h"
 #include "sdk_common.h"
 
+
 static ret_code_t add_led_ena_char(ble_blink_t *p_blink,
                                    const ble_blink_init_t *p_blink_init)
 {
@@ -37,6 +38,7 @@ static ret_code_t add_led_ena_char(ble_blink_t *p_blink,
                                   &add_char_params,
                                   &p_blink->led_ena_handle);
     VERIFY_SUCCESS(err_code);
+    p_blink->led_ena_wr_handler = p_blink_init->led_ena_wr_handler;
 
     return err_code;
 }
@@ -76,6 +78,7 @@ static ret_code_t add_led_int_char(ble_blink_t *p_blink,
                                   &add_char_params,
                                   &p_blink->led_int_handle);
     VERIFY_SUCCESS(err_code);
+    p_blink->led_interval_wr_handler = p_blink_init->led_interval_wr_handler;
 
     return err_code;
 }
@@ -124,6 +127,22 @@ void blink_ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context)
         {
         case BLE_GAP_EVT_CONNECTED:
                 break;
+        case BLE_GATTS_EVT_WRITE:
+        {
+                ble_gatts_evt_write_t const *p_evt_write = &p_ble_evt->evt.gatts_evt.params.write;
+                if (p_evt_write->handle == p_blink->led_int_handle.value_handle &&
+                    p_blink->led_interval_wr_handler)
+                        p_blink->led_interval_wr_handler(p_ble_evt->evt.gap_evt.conn_handle,
+                                                          p_blink,
+                                                          p_evt_write->data[0]);
+
+                if (p_evt_write->handle == p_blink->led_ena_handle.value_handle &&
+                    p_blink->led_ena_wr_handler)
+                        p_blink->led_ena_wr_handler(p_ble_evt->evt.gap_evt.conn_handle,
+                                                     p_blink,
+                                                     p_evt_write->data[0]);
+                break;
+        }
         default:
                 return;
         }
